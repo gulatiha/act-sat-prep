@@ -283,22 +283,253 @@ const QUESTIONS = [
     question:"If 2x + 3y = 12 and x = 3, what is y?",
     options:["A) 1","B) 2","C) 3","D) 4"], correct:"B",
     explanation:"Substitute x = 3: 6 + 3y = 12, so 3y = 6, y = 2." },
+
+  // ── MORE ACT ENGLISH ──────────────────────────────────────────────────────
+  { id:56, testType:"ACT", section:"English", topic:"Parallelism", difficulty:"medium",
+    question:"Choose the correctly parallel sentence:",
+    options:["A) She enjoys hiking, to swim, and running.","B) She enjoys hiking, swimming, and running.","C) She enjoys to hike, swimming, and to run.","D) She enjoys hike, swim, and run."], correct:"B",
+    explanation:"Parallel structure requires all items in a list to have the same grammatical form. 'Hiking, swimming, and running' are all gerunds (-ing forms)." },
+
+  { id:57, testType:"ACT", section:"English", topic:"Run-on Sentences", difficulty:"medium",
+    question:"Which correctly fixes this run-on?\n'The experiment failed the researchers were not discouraged.'",
+    options:["A) The experiment failed, the researchers were not discouraged.","B) The experiment failed; the researchers were not discouraged.","C) The experiment failed but, the researchers were not discouraged.","D) No change needed."], correct:"B",
+    explanation:"A semicolon correctly joins two independent clauses. Option A creates a comma splice (still a run-on). Option C incorrectly places a comma after 'but.'" },
+
+  { id:58, testType:"ACT", section:"English", topic:"Word Choice", difficulty:"easy",
+    question:"Choose the correct word:\n'The medicine had a significant __ on the patient's recovery.'",
+    options:["A) affect","B) effect","C) effected","D) affecting"], correct:"B",
+    explanation:"'Effect' is the noun (a result). 'Affect' is the verb (to influence). The sentence needs a noun after the article 'a.'" },
+
+  { id:59, testType:"ACT", section:"English", topic:"Pronoun Case", difficulty:"medium",
+    question:"Choose the correct pronoun:\n'The award was given to Maria and __.'",
+    options:["A) I","B) me","C) myself","D) mine"], correct:"B",
+    explanation:"After a preposition ('to'), use the objective case: 'me.' Test it by removing 'Maria and' — 'The award was given to me' is correct, not 'to I.'" },
+
+  { id:60, testType:"ACT", section:"English", topic:"Sentence Fragments", difficulty:"medium",
+    question:"Which of the following is a complete sentence?",
+    options:["A) Running through the halls and shouting.","B) Because the storm was approaching.","C) Although she studied hard for the test.","D) The student arrived early and took her seat."], correct:"D",
+    explanation:"Option D has a subject ('the student') and a complete predicate. Options A, B, and C are fragments — A lacks a subject, B and C are dependent clauses." },
+
+  { id:61, testType:"ACT", section:"English", topic:"Relative Pronouns", difficulty:"medium",
+    question:"Choose the correct relative pronoun:\n'The building __ was destroyed in the fire has been rebuilt.'",
+    options:["A) who","B) whom","C) that","D) whose"], correct:"C",
+    explanation:"'Who' and 'whom' refer to people. 'That' refers to things or places. Since 'building' is a thing, use 'that.'" },
+
+  { id:62, testType:"ACT", section:"English", topic:"Conciseness", difficulty:"easy",
+    question:"Which sentence is the most concise?",
+    options:["A) At this point in time, we are currently unable to proceed forward.","B) At this time, we are unable to proceed.","C) Currently, at this present moment, we cannot proceed forward.","D) We cannot proceed."], correct:"D",
+    explanation:"'We cannot proceed' conveys the full meaning with no redundancy. 'At this time,' 'currently,' 'forward,' and 'proceed forward' are all unnecessary additions." },
+
+  { id:63, testType:"ACT", section:"English", topic:"Modifiers", difficulty:"hard",
+    question:"Which sentence correctly places the modifier?",
+    options:["A) Almost the committee approved every proposal.","B) The committee approved almost every proposal.","C) The committee almost approved every proposal.","D) The committee approved every almost proposal."], correct:"B",
+    explanation:"'Almost' must be placed directly before 'every proposal' (what it modifies). Option C changes the meaning to imply the committee nearly approved but didn't." },
+
+  { id:64, testType:"ACT", section:"English", topic:"Apostrophes", difficulty:"easy",
+    question:"Choose the correct form:\n'The __ locker room was remodeled over the summer.'",
+    options:["A) players","B) player's","C) players'","D) players's"], correct:"C",
+    explanation:"Multiple players share one locker room, so use the plural possessive: players' (add apostrophe after the 's' for plural nouns ending in 's')." },
+
+  { id:65, testType:"ACT", section:"English", topic:"Transitions", difficulty:"medium",
+    question:"Choose the best transition:\n'The new policy was designed to save money. __, it ended up costing more.'",
+    options:["A) Furthermore","B) Similarly","C) Ironically","D) Therefore"], correct:"C",
+    explanation:"'Ironically' signals an unexpected or contradictory outcome — a money-saving policy that costs more. 'Furthermore' and 'Similarly' add, not contrast. 'Therefore' implies logical consequence." },
+
+  { id:66, testType:"ACT", section:"English", topic:"Punctuation", difficulty:"medium",
+    question:"Which sentence uses a dash correctly?",
+    options:["A) She packed everything she needed — her passport, her tickets, and her phone.","B) She — packed everything she needed.","C) She packed — everything, she needed.","D) She packed everything — she, needed."], correct:"A",
+    explanation:"A dash (—) can introduce a list or elaboration after a complete clause. Option A correctly uses a dash to introduce the list of items she packed." },
+
+  { id:67, testType:"ACT", section:"English", topic:"Subject-Verb Agreement", difficulty:"medium",
+    question:"Choose the correct verb:\n'The number of students who passed the exam __ surprisingly high.'",
+    options:["A) were","B) are","C) was","D) have been"], correct:"C",
+    explanation:"'The number' is the subject (singular), not 'students.' 'The number of X is' (singular) vs. 'A number of X are' (plural) — this is a classic distinction." },
+
+  { id:68, testType:"ACT", section:"English", topic:"Colons and Semicolons", difficulty:"hard",
+    question:"Which sentence uses punctuation correctly?",
+    options:["A) The results were clear: the new drug was ineffective.","B) The results were clear; the new drug was ineffective.","C) The results were clear, the new drug was ineffective.","D) Both A and B are correct."], correct:"D",
+    explanation:"Both a colon (introducing a conclusion) and a semicolon (joining two related independent clauses) are grammatically correct here. Option C is a comma splice." },
+
+  { id:69, testType:"ACT", section:"English", topic:"Verb Tense", difficulty:"hard",
+    question:"Choose the correct verb form:\n'If she __ harder, she would have passed the exam.'",
+    options:["A) studied","B) had studied","C) would study","D) studies"], correct:"B",
+    explanation:"In a past counterfactual conditional (something that didn't happen), use past perfect ('had studied') in the if-clause and 'would have + past participle' in the result clause." },
+
+  // ── MORE SAT READING ──────────────────────────────────────────────────────
+  { id:70, testType:"SAT", section:"Reading", topic:"Author's Purpose", difficulty:"medium",
+    question:"Passage: For decades, scientists dismissed the idea that birds could navigate using Earth's magnetic field as fringe science. New research, however, has identified magnetite crystals in birds' beaks that may function as a biological compass — quietly vindicating the skeptics' skeptics.\n\nThe author's primary purpose is to:",
+    options:["A) Criticize scientists for dismissing magnetic navigation","B) Explain how Earth's magnetic field works","C) Describe evidence that challenges a long-held scientific dismissal","D) Argue that all animals can sense magnetic fields"], correct:"C",
+    explanation:"The passage describes new research ('magnetite crystals') that supports an idea previously dismissed. The purpose is to present evidence — not to criticize, explain magnetism broadly, or make a claim about all animals." },
+
+  { id:71, testType:"SAT", section:"Reading", topic:"Structure", difficulty:"hard",
+    question:"Passage: Paragraph 1: The city's new transit plan promises to reduce commute times by 30%. Paragraph 2: Three previous plans made identical promises and failed. Paragraph 3: Analysts note this plan uses a different funding model.\n\nHow does paragraph 2 function in the passage?",
+    options:["A) It provides data supporting the new plan","B) It introduces a complication that paragraph 3 then addresses","C) It argues the new plan will definitely fail","D) It summarizes the author's conclusion"], correct:"B",
+    explanation:"Paragraph 2 raises a problem (past failures), which paragraph 3 then addresses by noting the new plan differs. This is a classic 'complication → response' structure." },
+
+  { id:72, testType:"SAT", section:"Reading", topic:"Words in Context", difficulty:"medium",
+    question:"Passage: The economist's analysis was lauded for its parsimony — it explained complex market behavior using only three variables where previous models had required dozens.\n\nAs used in the passage, 'parsimony' most nearly means:",
+    options:["A) Generosity","B) Economy and simplicity","C) Inaccuracy","D) Complexity"], correct:"B",
+    explanation:"In scientific contexts, 'parsimony' means using the minimum necessary to explain something. The passage defines it — 'three variables where previous models had required dozens' — pointing to simplicity." },
+
+  { id:73, testType:"SAT", section:"Reading", topic:"Evidence", difficulty:"hard",
+    question:"Passage: Standardized tests have long been criticized for favoring students from higher-income households, who have access to expensive test prep. A recent study found that students whose families spent over $1,000 on prep scored, on average, 39 points higher than unprepared peers on a 1600-point scale.\n\nWhich statement is directly supported by the passage?",
+    options:["A) Standardized tests are unfair and should be eliminated","B) Test prep guarantees a higher score","C) Spending over $1,000 on prep was associated with a modest score advantage","D) All income disparities in test scores are caused by test prep spending"], correct:"C",
+    explanation:"The passage says students who spent $1,000+ scored 39 points higher on average — a correlation, not a guarantee. The passage doesn't call for elimination or claim prep is the only cause of disparities." },
+
+  { id:74, testType:"SAT", section:"Reading", topic:"Inference", difficulty:"medium",
+    question:"Passage: The documentary received unanimous praise from critics, won three major awards, and was viewed by over five million people in its first week — and yet its director has never been offered a studio deal.\n\nWhat can be reasonably inferred?",
+    options:["A) The director does not want a studio deal","B) Studios value commercial success over critical acclaim","C) Commercial or industry factors beyond critical success influence studio decisions","D) The documentary was actually a financial failure"], correct:"C",
+    explanation:"The documentary succeeded critically and in viewership but the director got no studio deal — suggesting factors beyond critical success (connections, genre, budget requirements) influence industry decisions. We can't infer the director doesn't want one, or that studios ignore acclaim entirely." },
+
+  // ── MORE SAT WRITING ──────────────────────────────────────────────────────
+  { id:75, testType:"SAT", section:"Writing", topic:"Combining Sentences", difficulty:"medium",
+    question:"Which best combines these sentences?\n'The report was thorough. It was also clearly written. It persuaded the board.'",
+    options:["A) The report was thorough, clearly written, and persuaded the board.","B) The report was thorough and clearly written, persuading the board.","C) The report was thorough. It was clearly written and persuaded the board.","D) Being thorough and clear, the board was persuaded by the report."], correct:"B",
+    explanation:"Option B combines all three ideas efficiently and uses parallel adjectives ('thorough and clearly written') followed by a participial phrase. Option D has a dangling modifier (the board wasn't thorough and clear — the report was)." },
+
+  { id:76, testType:"SAT", section:"Writing", topic:"Verb Agreement", difficulty:"medium",
+    question:"Choose the correct verb:\n'Data from the three studies __ that the treatment is effective.'",
+    options:["A) suggest","B) suggests","C) are suggesting","D) have suggested"], correct:"A",
+    explanation:"'Data' is technically plural (datum/data), and modern SAT usage treats it as plural. 'Data suggest' is the formally correct form. Note: 'The data suggests' is increasingly accepted, but the SAT prefers the traditional plural." },
+
+  { id:77, testType:"SAT", section:"Writing", topic:"Misplaced Modifiers", difficulty:"hard",
+    question:"Which sentence is correctly written?",
+    options:["A) Painted in bold strokes, the critic admired the mural.","B) The critic admired the mural, which was painted in bold strokes.","C) The mural, painted in bold strokes, the critic admired it.","D) Admiring the mural, it was painted in bold strokes."], correct:"B",
+    explanation:"Option A implies the critic was painted in bold strokes. Option B correctly places 'which was painted in bold strokes' as a relative clause modifying 'the mural.'" },
+
+  { id:78, testType:"SAT", section:"Writing", topic:"Punctuation", difficulty:"medium",
+    question:"Choose the correctly punctuated sentence:",
+    options:["A) The study which lasted three years produced unexpected results.","B) The study, which lasted three years, produced unexpected results.","C) The study that lasted three years, produced unexpected results.","D) The study — which lasted three years produced unexpected results."], correct:"B",
+    explanation:"'Which lasted three years' is a non-restrictive (non-essential) clause — it adds information but doesn't define which study. Non-restrictive clauses need commas on both sides." },
+
+  { id:79, testType:"SAT", section:"Writing", topic:"Conciseness", difficulty:"easy",
+    question:"Which is most concise?\n'In the event that you are unable to attend, please let us know in advance ahead of time.'",
+    options:["A) In the event that you are unable to attend, please let us know in advance ahead of time.","B) If you cannot attend, please let us know in advance.","C) Should you be unable to attend, please notify us beforehand in advance.","D) In case you cannot make it to attend, let us know ahead of time in advance."], correct:"B",
+    explanation:"'If you cannot attend, please let us know in advance' eliminates three redundancies: 'in the event that' → 'if,' 'ahead of time' is redundant with 'in advance.'" },
+
+  // ── MORE ACT READING ──────────────────────────────────────────────────────
+  { id:80, testType:"ACT", section:"Reading", topic:"Humanities", difficulty:"medium",
+    question:"Passage: Jazz emerged in New Orleans in the early 20th century as a fusion of African rhythms, blues, and European harmonic structures. Unlike classical music, which followed strict compositional rules, jazz celebrated improvisation — the spontaneous creation of melody in the moment.\n\nAccording to the passage, what distinguishes jazz from classical music?",
+    options:["A) Jazz originated in Europe while classical music came from Africa","B) Jazz uses improvisation while classical music follows strict rules","C) Classical music is more popular than jazz today","D) Jazz relies solely on African rhythmic traditions"], correct:"B",
+    explanation:"The passage directly states jazz 'celebrated improvisation' while classical music 'followed strict compositional rules.' The other options are not supported or contradict the passage." },
+
+  { id:81, testType:"ACT", section:"Reading", topic:"Social Science", difficulty:"medium",
+    question:"Passage: A longitudinal study tracked 500 adults over 20 years and found that those who reported higher levels of social connection in their 40s were significantly less likely to develop cognitive decline in their 60s. The researchers controlled for exercise, diet, and education.\n\nThe phrase 'controlled for exercise, diet, and education' most likely means the researchers:",
+    options:["A) Required participants to follow specific diet and exercise routines","B) Eliminated participants who exercised or were educated","C) Accounted for those factors so they wouldn't distort the findings","D) Found that exercise and diet had no effect on cognitive decline"], correct:"C",
+    explanation:"'Controlling for' variables in research means accounting for them statistically to isolate the effect of the variable being studied (social connection)." },
+
+  { id:82, testType:"ACT", section:"Reading", topic:"Literary Narrative", difficulty:"hard",
+    question:"Passage: Marcus had rehearsed the speech a hundred times. He knew every pause, every inflection. But standing at the podium, watching his father's face in the front row — a face he had never seen look proud — he found he could not remember a single word.\n\nThe detail about his father's face primarily serves to:",
+    options:["A) Show that Marcus is a poor public speaker","B) Reveal the emotional weight behind Marcus's memory lapse","C) Suggest that Marcus's father disapproves of the speech","D) Explain why Marcus prepared so thoroughly"], correct:"B",
+    explanation:"Marcus forgot his speech not from lack of preparation but from the overwhelming emotion of seeing his father look proud for the first time. The detail reveals that emotion is the cause of the lapse." },
+
+  // ── MORE ACT SCIENCE ──────────────────────────────────────────────────────
+  { id:83, testType:"ACT", section:"Science", topic:"Research Summaries", difficulty:"medium",
+    question:"A researcher tests a new fertilizer at three concentrations: 10 mg/L, 50 mg/L, and 100 mg/L. Plant heights after 4 weeks: 15 cm, 28 cm, and 19 cm.\n\nWhich conclusion is best supported?",
+    options:["A) More fertilizer always produces taller plants","B) Plant growth peaks at a moderate fertilizer concentration","C) The fertilizer has no effect on plant growth","D) 100 mg/L is the optimal concentration for all plants"], correct:"B",
+    explanation:"Growth peaked at 50 mg/L (28 cm) then declined at 100 mg/L (19 cm), indicating an optimal middle concentration. Higher concentrations may be toxic to plants." },
+
+  { id:84, testType:"ACT", section:"Science", topic:"Data Representation", difficulty:"easy",
+    question:"A table shows average monthly rainfall (cm): Jan=5, Feb=4, Mar=8, Apr=14, May=18, Jun=22.\n\nBetween which two months did rainfall increase the most?",
+    options:["A) Jan to Feb","B) Feb to Mar","C) Mar to Apr","D) Apr to May"], correct:"C",
+    explanation:"Changes: Jan→Feb = −1, Feb→Mar = +4, Mar→Apr = +6, Apr→May = +4. The largest increase (6 cm) occurred from March to April." },
+
+  { id:85, testType:"ACT", section:"Science", topic:"Conflicting Viewpoints", difficulty:"medium",
+    question:"Scientist A: Dinosaurs were warm-blooded (endothermic), based on bone growth patterns similar to modern mammals.\nScientist B: Dinosaurs were cold-blooded (ectothermic), since they were reptiles and reptiles are ectothermic.\n\nWhich evidence would WEAKEN Scientist B's argument?",
+    options:["A) Discovery that some modern reptiles are partially warm-blooded","B) Fossil evidence showing dinosaur bones similar to cold-blooded reptiles","C) Data showing dinosaurs lived in cold climates","D) Evidence that all mammals are warm-blooded"], correct:"A",
+    explanation:"Scientist B argues dinosaurs were cold-blooded because reptiles are cold-blooded. If some modern reptiles are partially warm-blooded, the core assumption ('reptiles are ectothermic') is weakened." },
+
+  // ── MORE ACT MATH ─────────────────────────────────────────────────────────
+  { id:86, testType:"ACT", section:"Math", topic:"Algebra", difficulty:"hard",
+    question:"If f(x) = x² − 4 and g(x) = x + 2, what is f(g(1))?",
+    options:["A) 3","B) 5","C) 9","D) −3"], correct:"B",
+    explanation:"First: g(1) = 1 + 2 = 3. Then: f(3) = 3² − 4 = 9 − 4 = 5." },
+
+  { id:87, testType:"ACT", section:"Math", topic:"Geometry", difficulty:"medium",
+    question:"Two parallel lines are cut by a transversal. One angle measures 65°. What is the measure of the co-interior (same-side interior) angle?",
+    options:["A) 65°","B) 115°","C) 25°","D) 180°"], correct:"B",
+    explanation:"Co-interior angles (same-side interior) are supplementary, so they add to 180°. 180° − 65° = 115°." },
+
+  { id:88, testType:"ACT", section:"Math", topic:"Pre-Algebra", difficulty:"easy",
+    question:"What is the least common multiple (LCM) of 4 and 6?",
+    options:["A) 2","B) 12","C) 24","D) 10"], correct:"B",
+    explanation:"Multiples of 4: 4, 8, 12, 16… Multiples of 6: 6, 12, 18… The smallest common multiple is 12." },
+
+  { id:89, testType:"ACT", section:"Math", topic:"Coordinate Geometry", difficulty:"medium",
+    question:"A line passes through (−2, 1) and (4, 4). What is its slope?",
+    options:["A) 1/2","B) 2","C) 3/6","D) 1"], correct:"A",
+    explanation:"Slope = (4 − 1) / (4 − (−2)) = 3 / 6 = 1/2." },
+
+  { id:90, testType:"ACT", section:"Math", topic:"Trigonometry", difficulty:"medium",
+    question:"In a right triangle, cos(θ) = 3/5. What is sin(θ)?",
+    options:["A) 3/4","B) 4/5","C) 5/3","D) 5/4"], correct:"B",
+    explanation:"If cos(θ) = adj/hyp = 3/5, then adj = 3 and hyp = 5. By Pythagorean theorem: opp = √(25 − 9) = √16 = 4. So sin(θ) = opp/hyp = 4/5." },
+
+  // ── MORE SAT MATH ─────────────────────────────────────────────────────────
+  { id:91, testType:"SAT", section:"Math", topic:"Data Analysis", difficulty:"hard",
+    question:"A scatterplot shows hours studied (x) vs. test score (y). The line of best fit is y = 5x + 55. What does the y-intercept represent?",
+    options:["A) The score increases by 55 for each hour studied","B) A student who studied 0 hours is predicted to score 55","C) The maximum possible score is 55","D) A student must study 55 hours to pass"], correct:"B",
+    explanation:"The y-intercept (55) is the predicted score when x = 0 — i.e., a student who studied 0 hours. The slope (5) represents the score increase per hour studied." },
+
+  { id:92, testType:"SAT", section:"Math", topic:"Quadratics", difficulty:"hard",
+    question:"If (x − 3)² = 16, what are the values of x?",
+    options:["A) x = 7 or x = −1","B) x = 7 only","C) x = 4 or x = −4","D) x = 19 or x = −13"], correct:"A",
+    explanation:"Take the square root of both sides: x − 3 = ±4. So x = 3 + 4 = 7 or x = 3 − 4 = −1." },
+
+  { id:93, testType:"SAT", section:"Math", topic:"Functions", difficulty:"hard",
+    question:"The function f is defined by f(x) = 2x + 1. What is f(f(3))?",
+    options:["A) 7","B) 14","C) 15","D) 8"], correct:"C",
+    explanation:"f(3) = 2(3) + 1 = 7. Then f(f(3)) = f(7) = 2(7) + 1 = 15." },
+
+  { id:94, testType:"SAT", section:"Math", topic:"Geometry", difficulty:"medium",
+    question:"Two angles of a triangle measure 47° and 68°. What is the measure of the third angle?",
+    options:["A) 55°","B) 65°","C) 75°","D) 85°"], correct:"B",
+    explanation:"Angles in a triangle sum to 180°. Third angle = 180° − 47° − 68° = 65°." },
+
+  { id:95, testType:"SAT", section:"Math", topic:"Rates and Ratios", difficulty:"hard",
+    question:"A tank fills at 8 gallons per minute and drains at 3 gallons per minute. The tank holds 200 gallons. Starting empty with both open, how many minutes to fill completely?",
+    options:["A) 25 min","B) 40 min","C) 66.7 min","D) 200 min"], correct:"B",
+    explanation:"Net fill rate = 8 − 3 = 5 gallons/min. Time = 200 ÷ 5 = 40 minutes." },
 ];
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
-function getQuestions({ testType, section, topic, difficulty, count = 10 } = {}) {
+// Sections that belong exclusively to one test
+const SECTION_TEST_MAP = { English:'ACT', Science:'ACT', Writing:'SAT' };
+
+function inferTestType(section, currentTestType) {
+  if (!section) return currentTestType;
+  if (SECTION_TEST_MAP[section]) return SECTION_TEST_MAP[section];
+  return currentTestType;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getQuestions({ testType, section, topic, difficulty, count = 10, seenIds = [] } = {}) {
+  // Auto-correct testType when section implies a specific test
+  const effectiveTestType = inferTestType(section, testType);
+
   let pool = [...QUESTIONS];
-  if (testType && testType !== 'BOTH') pool = pool.filter(q => q.testType === testType || q.testType === 'BOTH');
+  if (effectiveTestType && effectiveTestType !== 'BOTH') {
+    pool = pool.filter(q => q.testType === effectiveTestType || q.testType === 'BOTH');
+  }
   if (section)    pool = pool.filter(q => q.section.toLowerCase() === section.toLowerCase());
   if (topic)      pool = pool.filter(q => q.topic.toLowerCase() === topic.toLowerCase());
   if (difficulty) pool = pool.filter(q => q.difficulty === difficulty);
-  // Fisher-Yates shuffle
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  return pool.slice(0, Math.min(count, pool.length));
+
+  // Prefer unseen questions; fall back to seen ones only if needed
+  const unseen = pool.filter(q => !seenIds.includes(q.id));
+  const seen   = pool.filter(q =>  seenIds.includes(q.id));
+
+  const ordered = [...shuffle(unseen), ...shuffle(seen)];
+  return ordered.slice(0, Math.min(count, ordered.length));
 }
 
 function getQuestionById(id) {
@@ -313,7 +544,10 @@ function getSections(testType) {
 
 function getTopics(testType, section) {
   let pool = QUESTIONS;
-  if (testType && testType !== 'BOTH') pool = pool.filter(q => q.testType === testType || q.testType === 'BOTH');
+  const effectiveTestType = inferTestType(section, testType);
+  if (effectiveTestType && effectiveTestType !== 'BOTH') {
+    pool = pool.filter(q => q.testType === effectiveTestType || q.testType === 'BOTH');
+  }
   if (section && section !== '') pool = pool.filter(q => q.section.toLowerCase() === section.toLowerCase());
   return [...new Set(pool.map(q => q.topic))].sort();
 }

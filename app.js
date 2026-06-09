@@ -12,6 +12,8 @@ const DB = {
   saveSessions(user,s) { localStorage.setItem('pm_sess_' + user, JSON.stringify(s)); },
   getTutorMsgs(user)   { return JSON.parse(localStorage.getItem('pm_tutor_' + user) || '[]'); },
   saveTutorMsgs(user,m){ localStorage.setItem('pm_tutor_' + user, JSON.stringify(m)); },
+  getSeenIds(user,key)     { return JSON.parse(localStorage.getItem('pm_seen_' + user + '_' + key) || '[]'); },
+  saveSeenIds(user,key,ids){ localStorage.setItem('pm_seen_' + user + '_' + key, JSON.stringify(ids)); },
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -63,6 +65,26 @@ function saveCompletedSession(data) {
   const sessions = DB.getSessions(S.user);
   sessions.push({ ...data, completedAt: Date.now(), completed: true });
   DB.saveSessions(S.user, sessions);
+}
+
+function markQuestionsSeen(quiz) {
+  if (!S.user || !quiz.seenKey) return;
+  const answeredIds = quiz.questions.map(q => q.id);
+  let seen = DB.getSeenIds(S.user, quiz.seenKey);
+  seen = [...new Set([...seen, ...answeredIds])];
+
+  // Count total available questions for this key's pool
+  const poolSize = QUESTIONS.filter(q => {
+    const sec = quiz.section !== 'Mixed' ? quiz.section : null;
+    const tt  = quiz.testType !== 'Mixed' ? quiz.testType : null;
+    if (tt && tt !== 'BOTH' && q.testType !== tt && q.testType !== 'BOTH') return false;
+    if (sec && q.section.toLowerCase() !== sec.toLowerCase()) return false;
+    return true;
+  }).length;
+
+  // Reset seen list when all pool questions have been seen
+  if (seen.length >= poolSize) seen = [];
+  DB.saveSeenIds(S.user, quiz.seenKey, seen);
 }
 
 function fmtDate(ts) {
@@ -440,9 +462,11 @@ function viewPractice() {
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Section</label>
-            <select name="section" id="section-select" onchange="updatePracticeTopics()" class="select-field">
+            <select name="section" id="section-select" onchange="handleSectionChange()" class="select-field">
               <option value="">All Sections</option>
-              ${getSections('SAT').map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+              <option value="Math">Math</option>
+              <option value="Reading">Reading</option>
+              <option value="Writing">Writing (SAT)</option>
               <option value="English">English (ACT)</option>
               <option value="Science">Science (ACT)</option>
             </select>
@@ -487,11 +511,30 @@ function viewPractice() {
   </div>`;
 }
 
+// Section labels for display
+const SECTION_LABELS = { English:'English (ACT)', Science:'Science (ACT)', Writing:'Writing (SAT)', Math:'Math', Reading:'Reading' };
+// Which test each section belongs to (undefined = works for either)
+const SECTION_TEST_LOCK = { English:'ACT', Science:'ACT', Writing:'SAT' };
+
 function updatePracticeSections(sel) {
   const testType = sel.value;
   const secSel = document.getElementById('section-select');
+  const sections = testType === 'SAT'
+    ? ['Math','Reading','Writing']
+    : testType === 'ACT'
+      ? ['English','Math','Reading','Science']
+      : ['Math','Reading','Writing','English','Science'];
   secSel.innerHTML = `<option value="">All Sections</option>` +
-    getSections(testType).map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    sections.map(s => `<option value="${esc(s)}">${esc(SECTION_LABELS[s] || s)}</option>`).join('');
+  updatePracticeTopics();
+}
+
+function handleSectionChange() {
+  const section  = document.getElementById('section-select').value;
+  const testSel  = document.querySelector('[name=testType]');
+  if (section && SECTION_TEST_LOCK[section]) {
+    testSel.value = SECTION_TEST_LOCK[section];
+  }
   updatePracticeTopics();
 }
 
@@ -506,12 +549,20 @@ function updatePracticeTopics() {
 function handleStartPractice(e) {
   e.preventDefault();
   const f = e.target;
+  const section = f.section.value || undefined;
+  const testType = f.testType.value || undefined;
+
+  // Build a stable key for this section's seen-question list
+  const seenKey = (section || 'all') + '_' + (testType || 'all');
+  const seenIds = S.user ? DB.getSeenIds(S.user, seenKey) : [];
+
   const opts = {
-    testType:   f.testType.value || undefined,
-    section:    f.section.value  || undefined,
+    testType,
+    section,
     topic:      f.topic.value    || undefined,
     difficulty: f.difficulty.value || undefined,
     count:      parseInt(f.count.value) || 10,
+    seenIds,
   };
   const questions = getQuestions(opts);
   if (!questions.length) { alert('No questions found for those filters. Try different options.'); return; }
@@ -520,10 +571,11 @@ function handleStartPractice(e) {
     answers: {},
     currentIndex: 0,
     type: 'practice',
-    testType: f.testType.value,
-    section: f.section.value || 'Mixed',
+    testType: questions[0].testType || testType || 'Mixed',
+    section: section || 'Mixed',
     topic: f.topic.value || 'Mixed',
     difficulty: f.difficulty.value || 'Mixed',
+    seenKey,
     startedAt: Date.now(),
     results: null,
   };
@@ -630,6 +682,7 @@ function handleSubmitQuiz() {
     correct,
     total: questions.length,
   });
+  markQuestionsSeen(S.quiz);
   navigate('quiz-results');
 }
 
