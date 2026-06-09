@@ -314,7 +314,7 @@ function getSections(testType) {
 function getTopics(testType, section) {
   let pool = QUESTIONS;
   if (testType && testType !== 'BOTH') pool = pool.filter(q => q.testType === testType || q.testType === 'BOTH');
-  if (section) pool = pool.filter(q => q.section.toLowerCase() === section.toLowerCase());
+  if (section && section !== '') pool = pool.filter(q => q.section.toLowerCase() === section.toLowerCase());
   return [...new Set(pool.map(q => q.topic))].sort();
 }
 

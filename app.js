@@ -420,7 +420,6 @@ function viewDashboard() {
 // PRACTICE QUIZ
 // ════════════════════════════════════════════════════════════════════════════
 function viewPractice() {
-  const sections = getSections('SAT');
   return `
   <div class="max-w-2xl mx-auto px-4 py-12">
     <div class="mb-8">
@@ -444,6 +443,8 @@ function viewPractice() {
             <select name="section" id="section-select" onchange="updatePracticeTopics()" class="select-field">
               <option value="">All Sections</option>
               ${getSections('SAT').map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+              <option value="English">English (ACT)</option>
+              <option value="Science">Science (ACT)</option>
             </select>
           </div>
         </div>
@@ -453,7 +454,7 @@ function viewPractice() {
             <label class="block text-sm font-semibold text-gray-700 mb-1">Topic</label>
             <select name="topic" id="topic-select" class="select-field">
               <option value="">All Topics</option>
-              ${getTopics('SAT','').map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+              ${getTopics(null, null).map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
             </select>
           </div>
           <div>
