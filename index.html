@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrepMaster — SAT &amp; ACT Prep</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+    /* Reusable component classes */
+    .btn-primary {
+      display: inline-block;
+      background: #1e3a5f;
+      color: white;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      transition: opacity .15s;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      font-size: 1rem;
+    }
+    .btn-primary:hover { opacity: 0.88; }
+
+    .input-field {
+      width: 100%;
+      border: 1.5px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .input-field:focus {
+      border-color: #1e3a5f;
+      box-shadow: 0 0 0 3px rgba(30,58,95,.15);
+    }
+
+    .select-field {
+      width: 100%;
+      border: 1.5px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+      outline: none;
+      background: white;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .select-field:focus { border-color: #1e3a5f; }
+
+    .nav-btn {
+      color: #cbd5e0;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .15s;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.12); color: white; }
+    .nav-active  { background: rgba(255,255,255,.15) !important; color: white !important; }
+
+    /* Smooth section transitions */
+    #app { animation: fadein .2s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Scrollbar styling for chat */
+    #chat-box::-webkit-scrollbar { width: 4px; }
+    #chat-box::-webkit-scrollbar-track { background: transparent; }
+    #chat-box::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- NAVBAR (rendered by JS) -->
+  <nav id="navbar" class="shadow-md sticky top-0 z-50" style="background:#1e3a5f;min-height:64px"></nav>
+
+  <!-- MAIN APP -->
+  <main id="app" class="flex-1"></main>
+
+  <!-- FOOTER -->
+  <footer style="background:#1e3a5f" class="text-blue-200 text-center text-xs py-4 mt-8">
+    PrepMaster &copy; 2024 &mdash; SAT &amp; ACT Study Platform &mdash; All data stored locally in your browser
+  </footer>
+
+  <!-- SCRIPTS — order matters: questions first, then app -->
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
