@@ -1080,7 +1080,22 @@ function viewTestResults() {
 // ════════════════════════════════════════════════════════════════════════════
 function viewTutor() {
   const msgs = DB.getTutorMsgs(S.user);
-  const starters = ['What should I study first?','Tips for SAT Math?','How do I improve my Reading score?','Explain the difference between SAT and ACT','I feel nervous about the test'];
+  const stats = getUserStats(S.user);
+
+  // Build dynamic starters based on user performance
+  const starters = getTutorStarters(stats);
+
+  // Build welcome card content
+  let welcomeStats = '';
+  if (stats.total > 0) {
+    const scoreColor = stats.avgScore >= 75 ? '#16a34a' : stats.avgScore >= 55 ? '#d97706' : '#dc2626';
+    welcomeStats = `
+    <div class="flex gap-3 justify-center mt-3 flex-wrap">
+      <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:#eff6ff;color:#1e40af">${stats.total} session${stats.total!==1?'s':''} completed</span>
+      <span class="text-xs px-3 py-1 rounded-full font-medium" style="background:#f0fdf4;color:${scoreColor}">${stats.avgScore}% avg score</span>
+      ${stats.weakAreas.length ? `<span class="text-xs px-3 py-1 rounded-full font-medium" style="background:#fff7ed;color:#9a3412">Focus: ${esc(stats.weakAreas[0])}</span>` : ''}
+    </div>`;
+  }
 
   return `
   <div class="max-w-4xl mx-auto px-4 py-8 flex flex-col" style="height:calc(100vh - 130px)">
@@ -1094,66 +1109,126 @@ function viewTutor() {
 
     <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 py-2 pr-1 mb-4">
       ${msgs.length === 0 ? `
-      <div class="text-center py-10">
-        <div class="text-5xl mb-3">🤖</div>
-        <h3 class="text-lg font-bold mb-2" style="color:#1e3a5f">Hi! I'm Alex, your AI Tutor.</h3>
-        <p class="text-gray-500 text-sm max-w-md mx-auto">I'll give you personalized advice based on your PrepMaster performance. Ask me anything about test prep!</p>
-        <div class="flex flex-wrap gap-2 justify-center mt-4">
+      <div class="text-center py-8">
+        <div class="text-5xl mb-3">🎓</div>
+        <h3 class="text-lg font-bold mb-1" style="color:#1e3a5f">Hi! I'm Alex, your AI Tutor.</h3>
+        <p class="text-gray-500 text-sm max-w-md mx-auto">I give you personalized advice based on your PrepMaster performance. Ask me anything about test prep!</p>
+        ${welcomeStats}
+        <div class="flex flex-wrap gap-2 justify-center mt-5">
           ${starters.map(s => `<button onclick="tutorStarter('${esc(s)}')" class="text-sm px-3 py-1.5 rounded-full transition font-medium hover:opacity-80" style="background:#dbeafe;color:#1e3a5f">${esc(s)}</button>`).join('')}
         </div>
-      </div>` : msgs.map(m => tutorBubbleHtml(m.role, m.content)).join('')}
+      </div>` : msgs.map(m => tutorBubbleHtml(m.role, m.content, m.chips)).join('')}
     </div>
 
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-3 flex gap-2 items-end">
       <textarea id="tutor-input" rows="1"
         class="flex-1 resize-none border-none outline-none text-sm text-gray-800 placeholder-gray-400"
         style="max-height:8rem"
-        placeholder="Ask your tutor anything..."
+        placeholder="Ask Alex anything..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTutorMessage()}"
         oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <button onclick="sendTutorMessage()" class="text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition flex-shrink-0" style="background:#1e3a5f">Send</button>
+      <button onclick="sendTutorMessage()" id="tutor-send-btn" class="text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition flex-shrink-0" style="background:#1e3a5f">Send</button>
     </div>
     <p class="text-xs text-gray-400 text-center mt-2">Enter to send · Shift+Enter for new line</p>
   </div>`;
 }
 
-function tutorBubbleHtml(role, content) {
+function getTutorStarters(stats) {
+  const defaults = ['What should I study first?','SAT vs ACT — which is better for me?','How do I manage test anxiety?','Build me a study plan'];
+  if (!stats.total) return defaults;
+  const out = [];
+  if (stats.weakAreas.length) out.push(`How do I improve in ${stats.weakAreas[0]}?`);
+  if (stats.weakAreas.length > 1) out.push(`Tips for ${stats.weakAreas[1]}?`);
+  if (stats.avgScore >= 75) out.push('How do I push from good to great?');
+  else out.push('What are the fastest ways to raise my score?');
+  out.push('Build me a study plan');
+  if (out.length < 5) out.push('How do I manage test timing?');
+  return out.slice(0,5);
+}
+
+// Convert simple markdown-ish syntax to HTML for chat bubbles
+function formatTutorMd(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n\n/g,'</p><p class="mt-2">')
+    .replace(/\n/g,'<br>')
+    .replace(/^/,'<p>').replace(/$/,'</p>');
+}
+
+function tutorBubbleHtml(role, content, chips) {
   if (role === 'user') {
-    return `<div class="flex justify-end"><div class="max-w-3/4 px-4 py-3 text-sm leading-relaxed rounded-2xl rounded-br-sm text-white" style="background:#1e3a5f;max-width:78%">${nl2br(content)}</div></div>`;
+    return `<div class="flex justify-end"><div class="px-4 py-3 text-sm leading-relaxed rounded-2xl rounded-br-sm text-white" style="background:#1e3a5f;max-width:78%">${formatTutorMd(content)}</div></div>`;
   }
+  const chipsHtml = chips && chips.length
+    ? `<div class="flex flex-wrap gap-1.5 mt-3">${chips.map(c => `<button onclick="tutorStarter('${esc(c)}')" class="text-xs px-2.5 py-1 rounded-full border transition hover:opacity-80 font-medium" style="border-color:#bfdbfe;color:#1e3a5f;background:#eff6ff">${esc(c)}</button>`).join('')}</div>`
+    : '';
   return `<div class="flex justify-start gap-2">
-    <span class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5" style="background:#1e3a5f">A</span>
-    <div class="px-4 py-3 text-sm leading-relaxed rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800" style="max-width:78%">${nl2br(content)}</div>
+    <span class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5" style="background:#1e3a5f">A</span>
+    <div class="px-4 py-3 text-sm leading-relaxed rounded-2xl rounded-tl-sm bg-white border border-gray-200 text-gray-800" style="max-width:78%">${formatTutorMd(content)}${chipsHtml}</div>
+  </div>`;
+}
+
+function tutorTypingHtml() {
+  return `<div class="flex justify-start gap-2" id="tutor-typing">
+    <span class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5" style="background:#1e3a5f">A</span>
+    <div class="px-4 py-3 rounded-2xl rounded-tl-sm bg-white border border-gray-200 flex items-center gap-1">
+      <span class="w-2 h-2 rounded-full animate-bounce" style="background:#1e3a5f;animation-delay:0ms"></span>
+      <span class="w-2 h-2 rounded-full animate-bounce" style="background:#1e3a5f;animation-delay:150ms"></span>
+      <span class="w-2 h-2 rounded-full animate-bounce" style="background:#1e3a5f;animation-delay:300ms"></span>
+    </div>
   </div>`;
 }
 
 function tutorStarter(text) {
-  document.getElementById('tutor-input').value = text;
+  const input = document.getElementById('tutor-input');
+  if (!input) return;
+  input.value = text;
   sendTutorMessage();
 }
 
 function sendTutorMessage() {
   const input = document.getElementById('tutor-input');
+  const btn = document.getElementById('tutor-send-btn');
   const message = input.value.trim();
   if (!message) return;
   input.value = '';
   input.style.height = 'auto';
+  if (btn) btn.disabled = true;
 
   const msgs = DB.getTutorMsgs(S.user);
   msgs.push({ role:'user', content: message, ts: Date.now() });
-
-  const stats = getUserStats(S.user);
-  const response = getRuleBasedResponse(message, stats);
-  msgs.push({ role:'assistant', content: response, ts: Date.now() });
-
   DB.saveTutorMsgs(S.user, msgs);
 
   const chatBox = document.getElementById('chat-box');
-  if (chatBox) {
-    chatBox.innerHTML += tutorBubbleHtml('user', message);
-    chatBox.innerHTML += tutorBubbleHtml('assistant', response);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+  if (!chatBox) return;
+
+  // Remove welcome screen if present
+  const welcome = chatBox.querySelector('.text-center');
+  if (welcome) welcome.remove();
+
+  chatBox.insertAdjacentHTML('beforeend', tutorBubbleHtml('user', message));
+  chatBox.insertAdjacentHTML('beforeend', tutorTypingHtml());
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const delay = 600 + Math.random() * 500;
+  setTimeout(() => {
+    const typing = document.getElementById('tutor-typing');
+    if (typing) typing.remove();
+
+    const stats = getUserStats(S.user);
+    const resp = getRuleBasedResponse(message, msgs, stats);
+    const updatedMsgs = DB.getTutorMsgs(S.user);
+    updatedMsgs.push({ role:'assistant', content: resp.text, chips: resp.chips, ts: Date.now() });
+    DB.saveTutorMsgs(S.user, updatedMsgs);
+
+    const box = document.getElementById('chat-box');
+    if (box) {
+      box.insertAdjacentHTML('beforeend', tutorBubbleHtml('assistant', resp.text, resp.chips));
+      box.scrollTop = box.scrollHeight;
+    }
+    if (btn) btn.disabled = false;
+  }, delay);
 }
 
 function clearTutorChat() {
@@ -1162,87 +1237,149 @@ function clearTutorChat() {
   navigate('tutor');
 }
 
-function getRuleBasedResponse(msg, stats) {
+function getRuleBasedResponse(msg, history, stats) {
   const m = msg.toLowerCase();
   const hasStats = stats.total > 0;
 
-  // Build personalized context
-  let personalNote = '';
-  if (hasStats) {
-    if (stats.weakAreas.length) personalNote = `\n\nBased on your recent sessions, I can see you're working on ${stats.weakAreas[0]} — so pay extra attention to the advice relevant to that area.`;
-    else if (stats.avgScore >= 80) personalNote = `\n\nYour average of ${stats.avgScore}% is excellent! You're in the refinement stage now — small improvements in tricky question types will push your score even higher.`;
-  } else {
-    personalNote = `\n\nSince you're just getting started, I don't have your performance data yet. Take a practice quiz first and I can give you much more targeted advice!`;
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function r(text, chips) { return { text, chips: chips || [] }; }
+
+  // Personalized data summary shown at the bottom of relevant responses
+  function perfNote() {
+    if (!hasStats) return '\n\nI don\'t have your performance data yet — take a practice quiz and I can give you much more targeted advice!';
+    const parts = [];
+    if (stats.weakAreas.length)  parts.push(`**Your focus areas:** ${stats.weakAreas.join(', ')}`);
+    if (stats.strongAreas.length) parts.push(`**Your strong areas:** ${stats.strongAreas.join(', ')}`);
+    if (parts.length) return '\n\n' + parts.join('\n');
+    return `\n\nYour average is **${stats.avgScore}%** — looking solid! Keep drilling your weaker topics.`;
   }
+
+  // Recent conversation context (avoid repeating the same topic)
+  const recentTopics = (history || []).slice(-6).map(m => m.content.toLowerCase()).join(' ');
 
   // ── TOPIC MATCHING ────────────────────────────────────────────────────────
 
-  if (/\b(hello|hi|hey|start|begin)\b/.test(m)) {
-    return `Hey there! Great to meet you. I'm Alex, and I'm here to help you crush the SAT or ACT.\n\nTell me: which test are you preparing for, and when is your test date? Once I know that, I can help you build a study plan that maximizes your score improvement in the time you have.${personalNote}`;
+  if (/\b(hello|hi|hey|sup|what.?s up)\b/.test(m)) {
+    if (!hasStats) {
+      return r(`Hey! I'm Alex, your PrepMaster tutor. 👋\n\nI'm at my best when I have your performance data to work with. Start with a **Practice Quiz** or **Full Test**, then come back and I can give you advice that's actually specific to *your* gaps — not just generic tips.\n\nWhat test are you preparing for?`,
+        ['SAT tips','ACT tips','Build me a study plan','I feel nervous about the test']);
+    }
+    const greeting = stats.avgScore >= 75
+      ? `Looking at your data, you're doing well with an average of **${stats.avgScore}%** — now it's time to fine-tune!`
+      : `Your current average is **${stats.avgScore}%** and your biggest opportunity is **${stats.weakAreas[0] || 'consistent practice'}**.`;
+    return r(`Hey! Great to see you back. ${greeting}\n\nWhat do you want to work on today?`,
+      stats.weakAreas.length
+        ? [`How do I improve in ${stats.weakAreas[0]}?`, 'Build me a study plan', 'Test-day tips', 'How do I manage time?']
+        : ['Build me a study plan', 'SAT vs ACT advice', 'Test-day tips', 'How do I manage time?']);
   }
 
-  if (/\b(study plan|schedule|how long|weeks|months|when to start)\b/.test(m)) {
-    return `Here's a proven 8-week study plan that works for most students:\n\n📅 Weeks 1–2: Take a full diagnostic test to find your baseline. Don't study beforehand — you need honest data.\n📅 Weeks 3–5: Focus 80% of your time on your two weakest sections. Use targeted practice drills (the PrepMaster Practice Quiz is great for this).\n📅 Weeks 6–7: Take two full practice tests under real time conditions. Review every single mistake.\n📅 Week 8: Light review only — no cramming. Focus on mental prep and sleep.\n\nIf you have less than 8 weeks, cut the review phase short but keep the full practice tests. If you have more, add extra drill time in weeks 3–5.${personalNote}`;
+  if (/\b(study plan|schedule|how long|weeks|months|when to start|build.?me)\b/.test(m)) {
+    const weak = hasStats && stats.weakAreas.length ? `\n\n**Your personalized focus:** Based on your sessions, spend extra time on **${stats.weakAreas[0]}${stats.weakAreas[1] ? ' and ' + stats.weakAreas[1] : ''}** during weeks 3–5.` : '';
+    return r(`Here's the proven 8-week plan:\n\n📅 **Weeks 1–2:** Take a full diagnostic test cold (no prep). You need honest baseline data.\n📅 **Weeks 3–5:** Put 80% of your time into your two weakest sections. Drill specific question types, not random mixed sets.\n📅 **Weeks 6–7:** Two full timed practice tests. Spend MORE time reviewing them than taking them.\n📅 **Week 8:** Light review only. No new material. Sleep, nutrition, and mindset.${weak}\n\n**Less than 8 weeks?** Skip extended drill time but never skip the full practice tests — they're irreplaceable.`,
+      ['How do I manage test timing?', 'What are the fastest ways to raise my score?', 'ACT Science tips', 'Test anxiety help']);
   }
 
   if (/\b(sat|act)\s*(or|vs|versus|difference|which|better|choose)\b/.test(m) || /which test/.test(m)) {
-    return `Great question — picking the right test can make a big difference!\n\nThe SAT tends to favor students who are strong at problem-solving and reasoning. The math section is heavily algebra and data analysis. Reading passages are long and require careful evidence-tracking.\n\nThe ACT is more straightforward and curriculum-based — it tests what you've actually learned in school. The science section sounds scary but is really just data interpretation. The pace is faster (more questions per minute).\n\nMy advice: take one official practice test for each and compare your scaled scores. Most students have a clear preference after that. Many colleges now accept both equally.\n\nIf you're strong in math and comfortable with longer, denser reading — SAT. If you're a fast reader and stronger in science class — ACT.${personalNote}`;
+    return r(`Picking the right test matters more than most students realize.\n\n**SAT is better if you:**\n• Are strong in algebra and data analysis\n• Prefer longer passages with detailed evidence questions\n• Like having more time per question (slightly)\n\n**ACT is better if you:**\n• Are a fast reader and comfortable with high pace\n• Are strong in science class (or good at data interpretation)\n• Prefer more straightforward, curriculum-based questions\n\n**My advice:** Take one real practice test for each. Most students have a clear preference after that — and the score gap between your "better" test is often significant. Most colleges accept both equally.`,
+      ['SAT Math tips', 'ACT Science tips', 'Build me a study plan', 'How do I manage time?']);
   }
 
-  if (/\b(math|algebra|equation|quadratic|geometry|trigonometry|exponent|fraction)\b/.test(m)) {
-    const satMath = hasStats && stats.weakAreas.some(a => a.includes('Math'));
-    return `Math is one of the most improvable sections — here's how to attack it:\n\n🔢 Heart of Algebra (SAT) / Pre-Algebra & Algebra (ACT): These are your easiest points. Master isolating variables, systems of equations, and linear functions. Always check your answer by plugging it back in.\n\n📐 Geometry: Memorize the Pythagorean theorem and the special right triangles (30-60-90 and 45-45-90). The area and volume formulas are NOT given on the ACT.\n\n🔣 Advanced Math: For quadratics, learn to factor quickly AND use the quadratic formula as a backup. Know Vieta's formulas (sum of roots = −b/a, product = c/a) — they show up surprisingly often.\n\n⚡ Speed strategies: If algebra feels slow, try plugging in answer choices (backsolving) or plugging in a specific number for variables. On the SAT you can use a calculator on most of the math section — use it!\n\n${satMath ? '⚠️ I see Math is one of your focus areas based on your sessions — prioritize 20–30 minutes of targeted math drills per day.' : ''}${personalNote}`;
+  if (/\b(math|algebra|equation|quadratic|geometry|trig|exponent|fraction|calculus|linear|polynomial)\b/.test(m)) {
+    const isSAT = /sat/.test(m);
+    const isACT = /act/.test(m);
+    const mathStat = hasStats ? stats.topicStats.find(([k]) => k.includes('Math')) : null;
+    const pct = mathStat ? ` (you're currently at **${mathStat[1]}%** in Math)` : '';
+    return r(`Math is the most improvable section${pct}. Here's the full playbook:\n\n🔢 **Algebra (highest priority):** Linear equations, systems of equations, inequalities. Always verify by plugging your answer back in.\n\n📐 **Geometry:** Know the Pythagorean theorem, special triangles (30-60-90, 45-45-90), and circle formulas cold. On the ACT, formulas are **NOT** given — memorize them.\n\n🔣 **Advanced Math:** For quadratics, master factoring AND the quadratic formula as a backup. Know that sum of roots = **−b/a** and product = **c/a**.\n\n⚡ **Speed tricks:**\n• Backsolving: plug answer choices back in when algebra feels messy\n• Plug in numbers: replace variables with specific values (like x=2) to test expressions\n• On SAT Module 2, use the calculator aggressively\n\n${isSAT ? '**SAT-specific:** No geometry formula sheet for non-calculator questions. The harder questions are about functions, systems, and non-linear models.' : isACT ? '**ACT-specific:** 60 questions in 60 min — pace is critical. Trig questions appear (SOH-CAH-TOA, unit circle basics).' : ''}`,
+      ['How do I improve in SAT – Math?', 'ACT Math pacing tips', 'Geometry strategies', 'How do I manage time?']);
   }
 
-  if (/\b(reading|passage|comprehension|inference|evidence|tone|author)\b/.test(m)) {
-    return `Reading is where many students leave points on the table. Here's the system that works:\n\n📖 The Golden Rule: Every correct answer is directly supported by specific words in the passage. If you can't point to the line, it's probably wrong.\n\n⚡ Time strategy: Read the questions first, THEN skim the passage for relevant sections. Don't read the entire passage before looking at questions — it wastes time.\n\n🔍 Evidence questions: On the SAT, paired questions (q+evidence) must link directly. Your evidence answer should PROVE your previous answer, not just relate to it.\n\n❌ Eliminating answers: Cross out anything extreme ("always," "never," "solely") and anything that goes beyond the passage (even if it's true in real life, if the passage doesn't say it, it's wrong).\n\n📝 Words-in-context: Read 2 sentences before and after the word. Try each answer choice in the sentence to see which sounds natural.${personalNote}`;
+  if (/\b(reading|passage|comprehension|inference|evidence|tone|author.?s purpose|main idea|words in context)\b/.test(m)) {
+    const readStat = hasStats ? stats.topicStats.find(([k]) => k.includes('Reading')) : null;
+    const pct = readStat ? ` You're at **${readStat[1]}%** in Reading — ` : ' ';
+    return r(`${pct}here's the system that eliminates careless mistakes:\n\n📖 **The Golden Rule:** Every correct answer is word-for-word supported somewhere in the passage. If you can't point to the exact line, eliminate it.\n\n⚡ **Time strategy:** Preview the questions first, then read purposefully. Don't re-read the whole passage — scan for where your answer lives.\n\n🔍 **Evidence questions (SAT):** Your line reference must directly *prove* your previous answer — not just be related to the topic. If the logic doesn't flow, go back and reconsider both answers.\n\n❌ **Eliminate traps:**\n• Extreme language: "always," "never," "solely" → almost always wrong\n• Out-of-scope: true in real life but not stated in the passage → wrong\n• Half-right: one part correct but another part wrong → wrong\n\n📝 **Words in context:** Cover the word, predict the meaning from context, then try each choice. Never rely on a memorized definition.`,
+      ['SAT Evidence questions', 'How do I manage Reading time?', 'Author\'s purpose questions', 'ACT Reading tips']);
   }
 
-  if (/\b(writing|grammar|punctuation|comma|semicolon|apostrophe|sentence|concise|transition)\b/.test(m)) {
-    return `Grammar and Writing is a highly learnable section — these 6 rules cover ~80% of questions:\n\n1️⃣ Subject-verb agreement: Find the true subject (ignore prepositional phrases). "The group of students WAS ready" — the verb agrees with "group," not "students."\n\n2️⃣ Parallel structure: Items in a list must match in form. "She likes hiking, swimming, and to run" → wrong. "hiking, swimming, and running" → correct.\n\n3️⃣ Semicolons: ONLY connect two independent (complete) sentences. Never use a semicolon before a fragment.\n\n4️⃣ Commas: Non-essential clauses need commas on both sides. Essential clauses get no commas.\n\n5️⃣ Conciseness: The SAT/ACT almost always prefers shorter answers. "Due to the fact that" → "Because." "At this point in time" → "Now."\n\n6️⃣ Transitions: Know the difference between contrast (however, nevertheless), cause (therefore, thus), and addition (furthermore, moreover).${personalNote}`;
+  if (/\b(english|writing|grammar|punctuation|comma|semicolon|apostrophe|parallel|concise|transition|sentence structure)\b/.test(m)) {
+    const writeStat = hasStats ? stats.topicStats.find(([k]) => k.includes('Writing') || k.includes('English')) : null;
+    const pct = writeStat ? ` You're at **${writeStat[1]}%** in Writing/English.` : '';
+    const isACTeng = /act/.test(m) || /english/.test(m);
+    return r(`Writing/English is the most rule-based section — master the patterns and the points follow.${pct}\n\n**The 6 rules that cover ~80% of questions:**\n\n1️⃣ **Subject-verb agreement:** Ignore prepositional phrases. "The group of students **was** ready" (group is the subject).\n\n2️⃣ **Parallel structure:** Items in a list must match grammatically. "running, swimming, **and to bike**" → wrong.\n\n3️⃣ **Semicolons:** Only between two complete sentences. Never before a fragment.\n\n4️⃣ **Non-essential clauses:** Must be set off by commas on **both** sides — or removed entirely.\n\n5️⃣ **Conciseness:** The shorter, clearer option is almost always right. "Due to the fact that" → "Because."\n\n6️⃣ **Transitions:** Contrast (however, nevertheless), cause/effect (therefore, thus), addition (furthermore).\n\n${isACTeng ? '**ACT English pace:** 36 seconds per question. "NO CHANGE" is correct ~25% of the time — always evaluate it seriously.' : '**SAT Writing:** Rhetorical questions (add/delete/move content) are 30% of the section. Always ask: does this support the paragraph\'s main idea?'}`,
+      ['Comma rule practice', 'SAT vs ACT Grammar differences', 'Transition words tips', 'How do I manage time?']);
   }
 
-  if (/\b(act english|act writing)\b/.test(m)) {
-    return `ACT English is 75 questions in 45 minutes — pace is everything!\n\n⏱ Time management: You have about 36 seconds per question. Don't linger. If a question takes more than 45 seconds, guess and move on.\n\n📌 "NO CHANGE" is correct about 25% of the time. Always read it seriously — don't assume every sentence needs fixing.\n\n🎯 Rhetorical skills questions: When asked to add, delete, or reorder content, always ask: does this information support the paragraph's main purpose? Stay focused on function, not just grammar.\n\n✂️ Comma splices: Two complete sentences joined only by a comma is always wrong on the ACT. Fix with a semicolon, a period, or a coordinating conjunction (FANBOYS: for, and, nor, but, or, yet, so).${personalNote}`;
+  if (/\b(science|act science|data.?rep|research.?summ|conflicting)\b/.test(m)) {
+    const sciStat = hasStats ? stats.topicStats.find(([k]) => k.includes('Science')) : null;
+    const pct = sciStat ? ` You're at **${sciStat[1]}%** in ACT Science.` : '';
+    return r(`Here's the secret about ACT Science: **you don't actually need science knowledge**.${pct}\n\nIt's a data interpretation and reading comprehension test in a lab coat. Approach each type differently:\n\n📊 **Data Representation (38%):** Read graphs and tables directly. Identify the trend, what the axes represent, and any patterns. Don't bring in outside knowledge.\n\n🔬 **Research Summaries (45%):** Ask for each experiment: what changed (independent variable) and what was measured (dependent variable)? What was the control? These questions are often just comparing experiments.\n\n⚔️ **Conflicting Viewpoints (17%):** Read each scientist's view *independently* before touching the questions. Identify the core of each argument. Questions will ask you to match evidence to the right scientist.\n\n🚀 **Speed tip:** The science passage has 5–7 questions. Read the questions *first*, then go to the figures/passage only for what you need. This is the single biggest time-saver.`,
+      ['Data Representation strategies', 'Conflicting Viewpoints tips', 'ACT timing help', 'Build me a study plan']);
   }
 
-  if (/\b(science|act science|data|graph|chart|experiment|hypothesis)\b/.test(m)) {
-    return `Here's the secret about ACT Science: you don't actually need science knowledge.\n\nIt's a reading comprehension + data interpretation test in disguise. Here's how to approach each type:\n\n📊 Data Representation (38% of questions): Read graphs directly. Find the trend (does the line go up or down?), identify the axes, and spot outliers. Don't overthink it.\n\n🔬 Research Summaries (45% of questions): Focus on what variable was changed and what effect it produced. Always ask: what was the control condition?\n\n⚔️ Conflicting Viewpoints (17% of questions): Read each scientist's claim separately before looking at questions. Identify what evidence each scientist relies on.\n\n🚀 Speed tip: Read the questions before the passage to know exactly what data you're looking for. This cuts reading time significantly.${personalNote}`;
+  if (/\b(time|timing|pacing|fast|slow|run.?out|speed|minutes|seconds.?per|pace)\b/.test(m)) {
+    return r(`Pacing is a learned skill — here's exactly what you need to know:\n\n⏱️ **Target pace per question:**\n• SAT Math: ~1 min 35 sec\n• SAT Reading: ~1 min 15 sec\n• SAT Writing: ~45 sec\n• ACT English: **36 sec** (hardest pace on any standardized test)\n• ACT Math: 1 min\n• ACT Reading: 52 sec\n• ACT Science: 52 sec\n\n🔄 **The 90-Second Rule:** If you're stuck on one question past 90 sec, mark it and move on. One stuck question can cascade into missing 3–4 easier ones after it.\n\n✅ **Never leave blanks:** No wrong-answer penalty on either test. Always guess — eliminate 1–2 choices first and pick the best remaining option.\n\n🏋️ **How to fix pacing:** Time every practice session, even short drills. Timing awareness is a muscle. Full practice tests under real conditions are the best training.`,
+      ['ACT English is too fast for me', 'SAT Math timing tips', 'How do I manage test anxiety?', 'What are the fastest ways to raise my score?']);
   }
 
-  if (/\b(time|timing|pacing|fast|slow|run out|speed|minutes)\b/.test(m)) {
-    return `Time management is one of the biggest differentiators between average and high scores. Here's how to fix it:\n\n⏱ Know your pace:\n• SAT Math: ~1.5 min/question\n• SAT Reading: ~1.25 min/question\n• ACT English: ~36 sec/question\n• ACT Math: ~1 min/question\n• ACT Reading: ~52 sec/question\n• ACT Science: ~52 sec/question\n\n🔄 The Skip Rule: If you've spent 90+ seconds on one question and you're stuck, mark it and move on. Come back with fresh eyes. Never let one question cost you three.\n\n✅ Always guess: There's no penalty for wrong answers on either test. Never leave a blank. On your first pass, eliminate 1-2 choices and pick the best remaining option.\n\n🏋️ The fix: Do timed practice. Use a timer on every practice session — even for short drills. Timing awareness is a skill you have to train.${personalNote}`;
+  if (/\b(anxi|nervous|stress|scared|worried|fear|overwhelm|panic|pressure)\b/.test(m)) {
+    return r(`Test anxiety is extremely common and completely manageable. Here's what's evidence-backed:\n\n🧠 **Preparation is the #1 cure.** Most anxiety comes from feeling underprepared. Every practice test under real conditions makes the actual test feel more familiar and less threatening.\n\n🌬️ **In-the-moment techniques:**\n• Box breathing before each section: inhale 4 sec, hold 4, exhale 4, hold 4\n• If panic hits mid-section: close your eyes for 5 full seconds — it interrupts the spiral\n• Reframe: "I've seen this question type before"\n\n💭 **Reframe the stakes:** One test score is a data point, not your identity. Most schools now accept multiple attempts and look at your best scores. A second attempt almost always shows improvement.\n\n💤 **The night before:** Do NOT cram. Light review only. Get 8+ hours of sleep and eat breakfast. Sleep deprivation costs you more than any last-minute reviewing gains.`,
+      ['How do I build better habits?', 'Build me a study plan', 'Test-day tips', 'What should I study first?']);
   }
 
-  if (/\b(anxious|nervous|anxiet|stress|scared|worried|fear|overwhelm)\b/.test(m)) {
-    return `Test anxiety is real and very common — and it's completely manageable. Here's what actually works:\n\n🧠 Preparation is the best anxiety reducer. Most test anxiety comes from feeling unprepared. The more practice tests you take in realistic conditions, the more familiar and less threatening the test environment feels.\n\n🌬️ Day-of strategies: Take three slow, deep breaths before starting each section. If you feel panicked during a section, close your eyes for 5 seconds. This sounds simple, but it interrupts the anxiety spiral.\n\n💭 Reframe the stakes: One test score is not your identity or your future. It's one data point. Colleges look at the whole picture. Many students significantly improve on their second attempt.\n\n💤 The night before: Do NOT cram. Light review only. Eat a good dinner, get 8+ hours of sleep, and eat breakfast. Sleep deprivation hurts cognitive performance more than any last-minute studying can help.${personalNote}`;
+  if (/\b(test.?day|day of|morning of|what to bring|checklist|the night before)\b/.test(m)) {
+    return r(`Here's your complete test-day checklist:\n\n**The night before:**\n• Light review only — no new material\n• Pack your bag: photo ID, admission ticket, approved calculator (with fresh batteries), pencils, snacks, water\n• Eat a real dinner and get 8+ hours of sleep\n\n**Morning of:**\n• Eat breakfast (protein + complex carbs — eggs + oatmeal is ideal)\n• Arrive 20–30 min early\n• Don't discuss the test with other students before it starts — it only increases anxiety\n\n**During the test:**\n• Bubble in answers as you go (ACT) — don't batch-bubble at the end\n• On the SAT, you can skip and return within a section\n• Use your scratch paper freely — show work for math, mark up passages\n• Guess on everything — **never leave a blank**\n\n**After each section:** Reset mentally. A bad section doesn't ruin your score — how you bounce back does.`,
+      ['How do I manage test anxiety?', 'Calculator tips for SAT', 'What to do if I run out of time', 'Build me a study plan']);
   }
 
-  if (/\b(improve|better|score|raise|increase|higher|points)\b/.test(m)) {
-    const weakPart = hasStats && stats.weakAreas.length
-      ? `Based on your data, your best opportunity right now is ${stats.weakAreas[0]}. Focused practice on that section alone could add significant points.`
-      : 'Without your performance data yet, start with a diagnostic practice test to find your biggest opportunity areas.';
-    return `Here's how to maximize score improvement:\n\n🎯 Focus on your weakest section first. A student at 50% in one section has much more to gain there than a student at 80%. ${weakPart}\n\n📈 The fastest gains come from mastering patterns, not memorizing facts. SAT and ACT questions repeat the same concepts over and over — learn to recognize the "type" of question, not just the answer.\n\n✏️ Review every mistake carefully. For every wrong answer, ask yourself: Why did I get this wrong? Was it a knowledge gap, a careless error, or a time management issue? Each has a different fix.\n\n📋 Take full practice tests regularly. Short drills build skills; full tests build stamina and reveal test-day patterns (like which section you tend to fade in).${personalNote}`;
+  if (/\b(improve|better|score|raise|increase|higher|points|what should i study|where do i start|focus)\b/.test(m)) {
+    if (!hasStats) {
+      return r(`The most important thing you can do right now is take a **diagnostic test** — either a full practice test or a focused quiz in each section.\n\nWithout data, I'm guessing at your gaps. With data, I can tell you exactly where you're leaving the most points on the table and what to do about it.\n\nStart with the **Practice Quiz**, pick a section, and do 10–15 questions. Then come back and I'll give you a fully personalized plan!`,
+        ['Take me to Practice', 'Build me a study plan', 'SAT vs ACT tips', 'Test anxiety help']);
+    }
+    const topGain = stats.weakAreas[0];
+    const topStrong = stats.strongAreas[0];
+    const lines = [
+      `Based on your **${stats.total} sessions** and **${stats.avgScore}% average**, here's your personalized roadmap:\n`,
+      topGain ? `🎯 **Biggest opportunity: ${topGain}** — This is where focused practice will give you the fastest score improvement. Drill this section specifically.` : '',
+      topStrong ? `💪 **Keep up ${topStrong}** — You're strong here. Maintain with light practice (1–2 sessions/week) so you don't lose ground.` : '',
+      `\n📈 **How to improve fastest:**\n• Review every wrong answer — understand *why* it's wrong, not just what the right answer is\n• Look for patterns in your mistakes (time pressure? knowledge gap? careless errors?)\n• Do **section-specific drills**, not just random mixed quizzes\n• Take a full practice test every 2 weeks under real conditions`,
+    ].filter(Boolean).join('\n');
+    return r(lines,
+      topGain ? [`Tips for ${topGain}`, 'How do I manage test timing?', 'Build me a study plan', 'Full practice test advice'] : ['Build me a study plan', 'Full practice test advice', 'How do I manage time?']);
   }
 
-  if (/\b(vocabulary|words|vocab|difficult words)\b/.test(m)) {
-    return `Vocabulary on the new SAT and ACT is very different from the old SAT — they no longer test obscure, archaic words.\n\nInstead, they test "words in context" — how a common word is used in a specific passage. The question will give you 4 definitions of a real word and ask which fits best.\n\nThe strategy: Go back to the passage, cover the word, and think about what the sentence means. Then try each answer choice in place of the word. The correct answer will preserve the sentence's meaning.\n\nDon't waste time memorizing long vocabulary lists. Instead, practice the "cover and predict" strategy on every words-in-context question you do.${personalNote}`;
+  if (/\b(vocabulary|words in context|vocab|word meaning)\b/.test(m)) {
+    return r(`Vocabulary on the current SAT and ACT is completely different from the old SAT — no more obscure words like "mellifluous" or "obsequious."\n\nBoth tests now test **words in context**: a common word used in a specific way that you need to identify from the passage.\n\n**The cover-and-predict method (always works):**\n1. Cover the underlined word\n2. Read the sentence and predict what word would fit based on context\n3. Compare your prediction to the answer choices — pick the closest match\n4. Plug it back in to confirm it makes sense\n\nDo NOT try to use memorized definitions — context always wins. A word like "distinguish" might mean "identify," "separate," or "make famous" depending on the sentence.`,
+      ['SAT Reading strategies', 'Words in context practice', 'How do I manage Reading time?']);
   }
 
-  if (/\b(resources|study guide|material|book|prep|khan|collegeboard)\b/.test(m)) {
-    return `Here are the best free and paid resources for SAT/ACT prep:\n\n🆓 Free:\n• Khan Academy SAT prep (official partner with College Board — highly recommended)\n• College Board's official SAT practice tests (8 full free tests)\n• ACT's official practice test (free on ACT.org)\n• PrepMaster's Resources section — study guides and strategies for every section!\n\n📚 Paid (worth it if you're serious):\n• Official SAT Study Guide (College Board) — real past tests\n• The Real ACT Prep Guide — real past ACT tests\n• Princeton Review or Kaplan for concept explanations\n\nMy recommendation: Start with the free official materials. Real past tests are the gold standard. Third-party books are great for concept review, but nothing beats practicing on real questions.${personalNote}`;
+  if (/\b(full test|practice test|diagnostic|timed test)\b/.test(m)) {
+    return r(`Full practice tests are the highest-ROI activity in your prep — here's how to extract maximum value:\n\n**Taking the test:**\n• Full real conditions: timer, desk, no phone, no music\n• Do the entire test in one sitting (at least once) to build stamina\n• Use only allowed materials (calculator only on allowed sections)\n\n**After the test (this is where the real work happens):**\n• Score it and log your section scores\n• For every wrong answer: write down WHY you got it wrong (concept gap, careless, time rush)\n• For every right answer you guessed on: review it anyway\n• Identify the 2–3 question types you missed most\n\n**Frequency:** One full test every 2 weeks. Any more and you won't have time to actually learn from them.\n\n**PrepMaster tip:** After a full test here, go back to Practice Quiz and drill the specific section types you missed!`,
+      ['How do I review mistakes effectively?', 'Build me a study plan', 'Test anxiety during practice tests', 'How do I manage time?']);
   }
 
-  if (/\b(full test|practice test|diagnostic)\b/.test(m)) {
-    return `Full practice tests are the single highest-value activity in your prep. Here's how to get the most out of them:\n\n🎯 Simulate real conditions: Use a timer, sit at a desk, no phone, no music. Treat it exactly like test day.\n\n📝 Don't just look at your score. After the test, spend MORE time reviewing than you spent taking it. Every wrong answer is a learning opportunity. Every right answer you weren't sure about is worth reviewing too.\n\n📅 Frequency: Take one full test every 2 weeks. Any more and you won't have time for the review and skill-building between tests.\n\n📈 Track patterns: Are you missing the same type of question repeatedly? That's your study focus. Are you running out of time in one section? That's your pacing issue.${personalNote}`;
+  if (/\b(good|great|perfect|excellent|awesome|doing well|high score|strong)\b/.test(m) && hasStats && stats.avgScore >= 75) {
+    return r(`**${stats.avgScore}%** is genuinely strong — you're in the refinement stage now, where the work changes.\n\nAt this level, the points you're missing are almost never from major knowledge gaps. They're from:\n\n🎯 **Precision traps:** Answer choices designed to catch students who "mostly understand" the concept. You need to be exact, not approximate.\n\n⏱️ **Pacing slip:** High scorers often lose points by rushing the last few questions in a section. Practice your finish.\n\n🔍 **The specific 10–15%:** Look hard at your wrong answers. They're probably clustered in 1–2 specific question types. Drill those exclusively until you're above 90% on them.\n\nAt your level, taking 2–3 more full practice tests is the best use of your time. The goal is consistency, not just average.`,
+      ['What are the hardest SAT Math topics?', 'How do I get a perfect score?', 'Full practice test advice', 'ACT Science hard questions']);
   }
 
-  // Default intelligent response
-  const topicGuess = hasStats && stats.weakAreas.length
-    ? `I notice from your performance that ${stats.weakAreas[0]} is an area where you have room to grow — want me to give you specific strategies for that?`
-    : 'Tell me what you\'re working on and I\'ll give you targeted advice!';
+  if (/\b(resources|book|material|khan|collegeboard|outside|where to find)\b/.test(m)) {
+    return r(`Here are the best resources, ranked by value:\n\n🥇 **Free (best bang for buck):**\n• **Khan Academy + College Board** — official SAT partnership, adaptive practice, 8 real past tests. Best free prep available.\n• **ACT.org** — free official ACT practice test\n• **PrepMaster Resources tab** — section-by-section strategy guides\n\n🥈 **Paid (worth it if serious):**\n• Official SAT Study Guide — real past tests from College Board\n• The Real ACT Prep Guide — real past ACT tests\n• Princeton Review or Kaplan — best for concept explanations and strategy\n\n**My take:** Real, official past tests are the gold standard. Third-party materials are great for learning strategy and concepts, but practice on real questions as much as possible.`,
+      ['Khan Academy vs PrepMaster', 'Build me a study plan', 'Full practice test advice']);
+  }
 
-  return `That's a great question! To give you the most useful advice, could you be a bit more specific?\n\nI can help with:\n• SAT or ACT Math strategies\n• Reading and Writing/English techniques\n• ACT Science approach\n• Test timing and pacing\n• Managing test anxiety\n• Building a study schedule\n• Understanding your weak areas and how to fix them\n\n${topicGuess}`;
+  // ── Personalized "what should I study" fallback when we have data ──────────
+  if (hasStats && stats.weakAreas.length && /\b(what|where|how|help|suggest|recommend|next)\b/.test(m)) {
+    return r(`Based on your **${stats.total} sessions** so far:\n\n${stats.weakAreas.map((a,i) => `${['🎯','📌','🔖'][i]||'•'} **${a}** — needs focused work`).join('\n')}\n${stats.strongAreas.length ? '\n' + stats.strongAreas.map(a => `✅ **${a}** — keep maintaining`).join('\n') : ''}\n\nI'd focus your next study session entirely on **${stats.weakAreas[0]}**. Use the Practice Quiz with that section selected and difficulty set to "medium" to start building consistency. Then push to "hard" once you're above 70%.`,
+      [`Tips for ${stats.weakAreas[0]}`, 'Build me a study plan', 'How do I manage time?', 'Full practice test advice']);
+  }
+
+  // ── Default fallback ───────────────────────────────────────────────────────
+  const suggest = hasStats && stats.weakAreas.length
+    ? `Based on your sessions, **${stats.weakAreas[0]}** is your biggest opportunity right now — want specific strategies for that?`
+    : 'Take a practice quiz first and I can give you advice that\'s actually tailored to *your* gaps.';
+
+  return r(`I want to give you the most useful answer! Could you be more specific?\n\nI can help with:\n• **SAT or ACT Math** — algebra, geometry, advanced math\n• **Reading** — evidence questions, timing, passage strategy\n• **Writing/English** — grammar rules, conciseness, rhetoric\n• **ACT Science** — data interpretation, research summaries\n• **Test timing and pacing** — section by section\n• **Test anxiety** — what actually works\n• **Study plans** — personalized to your timeline\n\n${suggest}`,
+    ['SAT Math tips', 'ACT Science tips', 'Reading strategies', 'Build me a study plan']);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
